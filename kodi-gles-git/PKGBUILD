@@ -1,0 +1,103 @@
+pkgname=kodi-gles-git
+pkgver=21.2
+pkgrel=1
+arch=(x86_64)
+makedepends=(bluez-libs cmake curl dav1d doxygen git glew gperf hicolor-icon-theme jdk-openjdk fmt libass libbluray libcdio libcec libgl mariadb-libs libmicrohttpd libmodplug libmpeg2 libnfs libpulse libva libvdpau libxrandr libxslt lirc lzo mesa nasm pipewire python-pycryptodomex python-pillow python-pybluez python-simplejson smbclient sndio spdlog taglib tinyxml swig upower giflib rapidjson ghostscript meson gtest graphviz pcre tinyxml2 libdisplay-info python-setuptools wayland-protocols waylandpp libxkbcommon libinput exiv2 nlohmann-json)
+
+_libdvdcss_version="1.4.3-Next-Nexus-Alpha2-2"
+_libdvdnav_version="6.1.1-Next-Nexus-Alpha2-2"
+_libdvdread_version="6.1.3-Next-Nexus-Alpha2-2"
+_crossguid_version="ca1bf4b810e2d188d04cb6286f957008ee1b7681"
+_fstrcmp_version="0.7.D001"
+_flatbuffers_version="23.3.3"
+_libudfread_version="1.1.2"
+
+source=(
+  "xbmc::git+https://github.com/xbmc/xbmc.git"
+  "libdvdcss-$_libdvdcss_version.tar.gz::https://github.com/xbmc/libdvdcss/archive/$_libdvdcss_version.tar.gz"
+  "libdvdnav-$_libdvdnav_version.tar.gz::https://github.com/xbmc/libdvdnav/archive/$_libdvdnav_version.tar.gz"
+  "libdvdread-$_libdvdread_version.tar.gz::https://github.com/xbmc/libdvdread/archive/$_libdvdread_version.tar.gz"
+  "crossguid-$_crossguid_version.tar.gz::https://mirrors.kodi.tv/build-deps/sources/crossguid-$_crossguid_version.tar.gz"
+  "fstrcmp-$_fstrcmp_version.tar.gz::https://mirrors.kodi.tv/build-deps/sources/fstrcmp-$_fstrcmp_version.tar.gz"
+  "flatbuffers-$_flatbuffers_version.tar.gz::https://mirrors.kodi.tv/build-deps/sources/flatbuffers-$_flatbuffers_version.tar.gz"
+  "libudfread-$_libudfread_version.tar.gz::https://mirrors.kodi.tv/build-deps/sources/libudfread-$_libudfread_version.tar.gz"
+)
+noextract=(
+  "libdvdcss-$_libdvdcss_version.tar.gz"
+  "libdvdnav-$_libdvdnav_version.tar.gz"
+  "libdvdread-$_libdvdread_version.tar.gz"
+  "crossguid-$_crossguid_version.tar.gz"
+  "fstrcmp-$_fstrcmp_version.tar.gz"
+  "flatbuffers-$_flatbuffers_version.tar.gz"
+  "libudfread-$_libudfread_version.tar.gz"
+)
+
+pkgver() {
+  cd xbmc
+  local major minor rev_count short_hash
+  major=$(grep VERSION_MAJOR "$srcdir/xbmc/version.txt" | awk '{print $2}')
+  minor=$(grep VERSION_MINOR "$srcdir/xbmc/version.txt" | awk '{print $2}')
+  rev_count=$(git rev-list --count HEAD)
+  short_hash=$(git rev-parse --short HEAD)
+  printf "%s.%s.r%s.%s" "$major" "$minor" "$rev_count" "$short_hash"
+}
+
+prepare() {
+  [[ -d "$srcdir/kodi-build" ]] && rm -rf "$srcdir/kodi-build"
+  mkdir "$srcdir/kodi-build"
+  cd xbmc
+  rm -rf system/certs
+}
+
+build() {
+  cd "$srcdir/kodi-build"
+  _cmake_common_args=(
+    -D APP_RENDER_SYSTEM=gles
+    -D CMAKE_BUILD_TYPE=Release
+    -D CMAKE_INSTALL_PREFIX=/usr
+    -D CMAKE_INSTALL_LIBDIR=/usr/lib
+    -D ENABLE_SSE=ON
+    -D ENABLE_SSE2=ON
+    -D ENABLE_SSE3=ON
+    -D ENABLE_SSSE3=ON
+    -D ENABLE_SSE4_1=ON
+    -D ENABLE_SSE4_2=ON
+    -D ENABLE_AVX=ON
+    -D ENABLE_AVX2=ON
+    -D USE_LTO=ON
+    -D ENABLE_LDGOLD=OFF
+    -D ENABLE_INTERNAL_RapidJSON=OFF
+    -D ENABLE_INTERNAL_FFMPEG=OFF
+    -D ENABLE_INTERNAL_CROSSGUID=ON
+    -D ENABLE_INTERNAL_FSTRCMP=ON
+    -D ENABLE_INTERNAL_FLATBUFFERS=ON
+    -D ENABLE_INTERNAL_UDFREAD=ON
+    -D libdvdcss_URL="$srcdir/libdvdcss-$_libdvdcss_version.tar.gz"
+    -D libdvdnav_URL="$srcdir/libdvdnav-$_libdvdnav_version.tar.gz"
+    -D libdvdread_URL="$srcdir/libdvdread-$_libdvdread_version.tar.gz"
+    -D CROSSGUID_URL="$srcdir/crossguid-$_crossguid_version.tar.gz"
+    -D FSTRCMP_URL="$srcdir/fstrcmp-$_fstrcmp_version.tar.gz"
+    -D FLATBUFFERS_URL="$srcdir/flatbuffers-$_flatbuffers_version.tar.gz"
+    -D UDFREAD_URL="$srcdir/libudfread-$_libudfread_version.tar.gz"
+  )
+  cmake ${_cmake_common_args[@]} ../xbmc
+  make
+}
+
+package() {
+  depends=(bluez-libs curl dav1d desktop-file-utils hicolor-icon-theme fmt lcms2 libass libbluray libcdio libcec libmicrohttpd libnfs libpulse libva libvdpau libxslt lirc lzo mariadb-libs mesa libpipewire python-pillow python-pycryptodomex python-simplejson smbclient sndio spdlog sqlite tinyxml taglib libxrandr libxkbcommon waylandpp libinput pcre tinyxml2 libdisplay-info exiv2)
+  provides=(kodi-common kodi-x11 kodi-wayland kodi-gbm kodi kodi-gles)
+  conflicts=(kodi kodi-gles)
+  _components=('kodi' 'kodi-bin')
+
+  cd kodi-build
+  for _cmp in ${_components[@]}; do
+  DESTDIR="$pkgdir" /usr/bin/cmake \
+    -DCMAKE_INSTALL_COMPONENT="$_cmp" \
+     -P cmake_install.cmake
+  done
+
+  mkdir -p "$pkgdir"/usr/lib/kodi/addons
+  mkdir -p "$pkgdir"/usr/share/kodi/system/certs
+  ln -s /etc/ssl/cert.pem "$pkgdir"/usr/share/kodi/system/certs/cacert.pem
+}

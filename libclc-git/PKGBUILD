@@ -1,0 +1,27 @@
+pkgname=libclc-git
+pkgver=20.1.6
+pkgrel=1
+arch=(x86_64)
+source=(llvm-project::git+https://github.com/llvm/llvm-project.git#commit=fc44a4f)
+makedepends=(clang llvm cmake ninja python spirv-llvm-translator)
+
+pkgver() {
+    cd llvm-project/cmake/Modules
+    local _pkgver=$(awk -F 'MAJOR |MINOR |PATCH |)' \
+            'BEGIN { ORS="." ; i=0 } \
+             /set\(LLVM_VERSION_/ { print $2 ; i++ ; if (i==2) ORS="" } \
+             END { print "\n" }' \
+             LLVMVersion.cmake)_r$(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+    echo "${_pkgver}"
+}
+
+build() {
+  cmake -G Ninja -S "$srcdir"/llvm-project/libclc -B _build -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr -Wno-dev
+  ninja $NINJAFLAGS -C _build
+}
+
+package() {
+  provides=(libclc)
+  conflicts=(libclc)
+  DESTDIR="${pkgdir}" ninja $NINJAFLAGS -C _build install
+}
