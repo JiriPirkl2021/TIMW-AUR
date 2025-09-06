@@ -1,0 +1,32 @@
+pkgname=spirv-llvm-translator-git
+pkgver=20.1.5
+pkgrel=1
+arch=(x86_64)
+source=(SPIRV-LLVM-Translator::git+https://github.com/KhronosGroup/SPIRV-LLVM-Translator.git)
+makedepends=(cmake git llvm spirv-headers)
+
+pkgver() {
+    cd SPIRV-LLVM-Translator
+    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+build() {
+  local cmake_args=(
+    -DBUILD_SHARED_LIBS=ON
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=/usr
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    -DCMAKE_SKIP_RPATH=ON
+    -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=/usr/include/spirv/
+    -Wno-dev
+  )
+  cmake -G 'Unix Makefiles' -S SPIRV-LLVM-Translator -B _build "${cmake_args[@]}"
+  cmake --build _build
+}
+
+package() {
+  depends=(gcc-libs glibc llvm-libs spirv-tools)
+  provides=(spirv-llvm-translator)
+  conflicts=(spirv-llvm-translator)
+  DESTDIR="${pkgdir}" cmake --install _build
+}
