@@ -1,0 +1,9 @@
+post_install() {
+    sudo kernel-install add-all
+    sudo bootctl list
+}
+
+post_upgrade() {
+    sudo kernel-install add-all
+    sudo bootctl list
+}
