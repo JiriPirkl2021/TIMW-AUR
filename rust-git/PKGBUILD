@@ -15,7 +15,7 @@ pkgver() {
 }
 
 prepare() {
-  rustup default nightly
+  rustup default beta
   cd rust
   cat >bootstrap.toml <<END
 profile = "dist"
@@ -46,7 +46,7 @@ codegen-units = 1
 codegen-units-std = 1
 debuginfo-level = 0
 debuginfo-level-std = 0
-channel = "nightly"
+channel = "stable"
 rpath = false
 frame-pointers = true
 deny-warnings = false
