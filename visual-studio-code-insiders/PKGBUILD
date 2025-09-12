@@ -1,5 +1,5 @@
 pkgname=visual-studio-code-insiders
-pkgver=1757067327
+pkgver=1757654939
 pkgrel=1
 arch=(x86_64)
 source=(code-${pkgver}.desktop.in::https://raw.githubusercontent.com/microsoft/vscode/master/resources/linux/code.desktop
