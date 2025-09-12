@@ -56,8 +56,6 @@ build() {
     -D gallium-mediafoundation=disabled
     -D gallium-rusticl=true
     -D gallium-rusticl-enable-drivers=iris,llvmpipe,nouveau,radeonsi
-    -D gallium-va=enabled
-    -D gallium-vdpau=enabled
     -D gbm=enabled
     -D glx=dri 
     -D gles1=disabled
